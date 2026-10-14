@@ -1,9 +1,30 @@
 {
-  "name": "readit-dev",
+  "name": "@mansourfall/readit",
   "version": "0.1.0",
   "description": "Beyond the README: evidence-backed use cases and interactive UML flows for humans.",
+  "keywords": [
+    "developer-tools",
+    "documentation",
+    "uml",
+    "codebase",
+    "onboarding",
+    "codex",
+    "agent-skill"
+  ],
+  "author": "Mansour Fall",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MansourFall/readit.git"
+  },
+  "homepage": "https://github.com/MansourFall/readit#readme",
+  "bugs": {
+    "url": "https://github.com/MansourFall/readit/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=22"
   },
