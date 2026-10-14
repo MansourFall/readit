@@ -4,6 +4,8 @@
 
 READIT turns a repository into an evidence-backed map of what the application does and how the code makes it happen. It combines a coding-agent skill, a dependency-free Node.js CLI, and an interactive UML explorer to help developers understand unfamiliar codebases.
 
+Published on npm as [`@mansourfall/readit`](https://www.npmjs.com/package/@mansourfall/readit).
+
 Instead of producing a generic summary, READIT organizes understanding around actors, user goals, scenarios, messages, and exact source references. It keeps source-backed observations separate from interpretations so reviewers can see what the code establishes and what still needs confirmation.
 
 ## What READIT provides
@@ -33,6 +35,7 @@ Install the CLI globally from npm:
 
 ```bash
 npm install --global @mansourfall/readit
+readit --version
 ```
 
 Install the READIT skill for Codex:
@@ -45,6 +48,18 @@ Restart Codex after installing the skill. READIT refuses to overwrite an existin
 
 ```bash
 readit install-skill --to /path/to/skills
+```
+
+To try the demo without installing the CLI globally:
+
+```bash
+npx --yes @mansourfall/readit demo
+```
+
+Update an existing global installation with:
+
+```bash
+npm update --global @mansourfall/readit
 ```
 
 ### Install from source
