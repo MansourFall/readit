@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <title>READIT · Beyond the README</title>
+  <style>/* READIT_CSS */</style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to explorer</a>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-icon">R<span>↗</span></span>READIT<span class="brand-note">BEYOND THE README</span></a>
+    <div class="header-actions"><span class="local-badge"><i></i> LOCAL EXPLORER</span><button id="theme" class="icon-button" aria-label="Toggle color theme">◐</button><button id="import-button" class="quiet-button">Import model</button><input id="import-file" type="file" accept="application/json,.json" hidden/></div>
+  </header>
+  <div class="workspace">
+    <aside class="sidebar" aria-label="Use case navigation">
+      <div class="sidebar-heading"><span class="eyebrow">YOUR CODE, UNDERSTOOD</span><h2 id="project-name"></h2><p id="project-desc"></p></div>
+      <label class="search-label" for="search">Find a use case</label><div class="searchbox"><span aria-hidden="true">⌕</span><input id="search" placeholder="Search goals, actors, flows…"/></div>
+      <label class="sr-only" for="actor-filter">Filter by actor</label><select id="actor-filter"><option value="all">All actors</option></select>
+      <div class="list-heading"><span>USE CASES</span><span id="case-count"></span></div>
+      <nav id="case-list" aria-label="Use cases"></nav>
+      <div class="onboarding"><span class="eyebrow">EXPLORATION PROGRESS</span><p><strong id="progress-label">0</strong> use cases visited</p><div class="progress-track"><div id="progress-fill"></div></div><button id="next-case" class="quiet-button">Take me to the next one →</button></div>
+      <footer class="sidebar-footer">AI can write the code.<br/><strong>You should understand it.</strong></footer>
+    </aside>
+    <main id="main" tabindex="-1">
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <section class="hero"><div><div class="eyebrow">THE APPLICATION EXPLORER <span class="tiny-line"></span></div><h1>Don't just read it.<br/><em>Follow the story.</em></h1><p>Start with what your app does. Follow how it happens.<br/>Find the code behind every step.</p></div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="art-node n1">USER</span><span class="art-node n2">INTENT</span><span class="art-node n3">LOGIC</span><span class="art-center">R↗</span><span class="art-caption">FROM INTENT TO IMPLEMENTATION</span></div></section>
+      <div class="metrics" id="metrics"></div>
+      <div class="view-toolbar"><div class="tabs" role="tablist" aria-label="Explorer views"><button role="tab" id="tab-story" aria-controls="story-view" aria-selected="true" data-view="story">01 · Story & flow</button><button role="tab" id="tab-map" aria-controls="map-view" aria-selected="false" data-view="map" tabindex="-1">02 · Use case map</button><button role="tab" id="tab-context" aria-controls="context-view" aria-selected="false" data-view="context" tabindex="-1">03 · Analysis context</button></div><button id="export-html" class="quiet-button">Export HTML ↗</button></div>
+      <section id="story-view" role="tabpanel" aria-labelledby="tab-story">
+        <div id="case-detail"></div>
+        <div id="flow-area"><div class="flow-heading"><div><span class="eyebrow">FOLLOW THE IMPLEMENTATION</span><h3>One message at a time.</h3></div><div class="flow-controls"><label class="sr-only" for="scenario">Scenario</label><select id="scenario"></select><button id="previous" class="icon-button" aria-label="Previous step">←</button><button id="play" class="primary-button">Play flow</button><button id="next" class="icon-button" aria-label="Next step">→</button><button id="reset" class="quiet-button">Reset</button></div></div>
+        <div class="flow-layout"><div class="diagram-panel"><div class="panel-heading"><span>UML SEQUENCE</span><span id="step-counter"></span></div><div id="sequence" class="diagram-scroll"></div><div class="diagram-legend"><span>→ Call</span><span>⇢ Return / async</span><span class="legend-active">● Current step</span></div></div><aside id="step-detail" class="step-panel" aria-live="polite"></aside></div>
+        <div class="exports"><button id="export-sequence" class="quiet-button">Download sequence .puml ↓</button><button id="export-model" class="quiet-button">Download model .json ↓</button><button id="export-feedback" class="quiet-button">Export review for your agent ↓</button></div></div>
+      </section>
+      <section id="map-view" role="tabpanel" aria-labelledby="tab-map" hidden><div class="section-heading"><div><span class="eyebrow">THE BIG PICTURE</span><h2>What can your app do?</h2><p>Click a use case to follow its implementation.</p></div><button id="export-map" class="quiet-button">Download use cases .puml ↓</button></div><div id="map" class="diagram-panel diagram-scroll"></div><p class="muted">Actors sit outside the system boundary. Ellipses represent user goals. Dashed dependencies show «include» or «extend» only when modeled.</p></section>
+      <section id="context-view" role="tabpanel" aria-labelledby="tab-context" hidden><div class="section-heading"><div><span class="eyebrow">UNDERSTAND THE LIMITS</span><h2>Evidence over assumptions.</h2></div></div><div id="analysis-context"></div></section>
+      <footer class="main-footer"><span>READIT / A MAP FOR HUMAN UNDERSTANDING</span><span>No cloud calls. No hidden magic.</span></footer>
+    </main>
+  </div>
+  <script id="readit-data" type="application/json">READIT_DATA</script>
+  <script type="module">// READIT_APP</script>
+</body>
+</html>

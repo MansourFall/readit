@@ -1,0 +1,20 @@
+schema: spec-driven
+context: |
+  Project: READIT — beyond the README, follow the story.
+  A portable agent skill, Node.js CLI, and offline interactive UML explorer.
+  Mission: improve developer onboarding and help humans understand AI-generated code.
+  MVP analysis is performed by the user's coding agent, not by a bundled model API.
+  Node.js >=22, ESM, native HTTP, vanilla browser JS/CSS, zero runtime dependencies.
+  Prefer evidence-backed behavioral models over invented or exhaustive-looking diagrams.
+  UML: actor/use case/system boundary; include and extend; sequence call/return/async.
+  Alternate/error flows are separate scenarios. Full UML combined fragments are future work.
+  Every observed claim cites relative paths, exact line ranges, and SHA-256 source hashes.
+  Inferred claims require rationales. Never call static analysis a runtime trace.
+  Tests: npm test; npm run test:ui with Playwright; npm run spec:validate.
+  Do not execute target repository code during analysis, read secrets, or publish source.
+rules:
+  specs:
+    - Use SHALL requirements and concrete WHEN/THEN scenarios.
+    - Distinguish implemented MVP behavior from future roadmap items.
+  tasks:
+    - Check tasks only after implementation and relevant validation pass.

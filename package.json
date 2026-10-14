@@ -1,0 +1,37 @@
+{
+  "name": "readit-dev",
+  "version": "0.1.0",
+  "description": "Beyond the README: evidence-backed use cases and interactive UML flows for humans.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "readit": "bin/readit.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "web",
+    "skills",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "schema",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "scripts": {
+    "start": "node bin/readit.js demo",
+    "demo": "node bin/readit.js demo",
+    "test": "node --test test/*.test.js",
+    "test:ui": "node test/browser.mjs",
+    "build": "node bin/readit.js build examples/shop/readit.json --out dist/readit.html",
+    "spec:validate": "openspec validate --all --strict",
+    "skill:install": "node bin/readit.js install-skill"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "1.14.1",
+    "playwright": "1.62.1"
+  }
+}

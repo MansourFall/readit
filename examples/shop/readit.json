@@ -1,0 +1,566 @@
+{
+  "schemaVersion": "1.0",
+  "project": {
+    "name": "Little Shop",
+    "description": "A small shop. A few user goals. A complete story behind each one."
+  },
+  "analysis": {
+    "mode": "demo",
+    "generatedAt": "2026-10-14T15:00:00.000Z",
+    "scope": "Manually authored model of the executable examples/shop fixture. Not an automatic analysis of an external repository.",
+    "limitations": [
+      "Customer-to-function interactions are inferred: the fixture has no UI or HTTP server.",
+      "Stock and orders are in memory. Payment uses a stub, not an external gateway.",
+      "Concurrency, idempotency, durable compensation, and persistence failures are outside the fixture.",
+      "Diagrams are static source interpretations, not runtime traces."
+    ]
+  },
+  "actors": [
+    {
+      "id": "customer",
+      "name": "Customer"
+    }
+  ],
+  "participants": [
+    {
+      "id": "customer",
+      "name": "Customer",
+      "kind": "actor"
+    },
+    {
+      "id": "shop",
+      "name": "Shop application",
+      "kind": "component"
+    },
+    {
+      "id": "stock",
+      "name": "Store / inventory",
+      "kind": "component"
+    },
+    {
+      "id": "payment",
+      "name": "Payment stub",
+      "kind": "component"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "browse",
+      "path": "examples/shop/app.js",
+      "startLine": 6,
+      "endLine": 7,
+      "reason": "Browsing delegates to the store.",
+      "sha256": "836cc8813fa770f92da53691220d091defe96e7e927fb02d8b2125d5b4f6286e",
+      "snippet": "    browseProducts() {\n      return store.listProducts();"
+    },
+    {
+      "id": "validate",
+      "path": "examples/shop/app.js",
+      "startLine": 9,
+      "endLine": 11,
+      "reason": "Validate input and reserve stock before payment.",
+      "sha256": "836cc8813fa770f92da53691220d091defe96e7e927fb02d8b2125d5b4f6286e",
+      "snippet": "    async placeOrder({ sku, token }) {\n      if (!sku || !token) return { status: 400, error: 'Missing product or payment token' };\n      if (!store.reserve(sku)) return { status: 409, error: 'Out of stock' };"
+    },
+    {
+      "id": "checkout",
+      "path": "examples/shop/app.js",
+      "startLine": 12,
+      "endLine": 18,
+      "reason": "Payment, persistence, success, and compensation.",
+      "sha256": "836cc8813fa770f92da53691220d091defe96e7e927fb02d8b2125d5b4f6286e",
+      "snippet": "      try {\n        const receipt = await payment(token);\n        const order = store.saveOrder(sku, receipt);\n        return { status: 201, order };\n      } catch {\n        store.release(sku);\n        return { status: 402, error: 'Payment declined' };"
+    },
+    {
+      "id": "list",
+      "path": "examples/shop/store.js",
+      "startLine": 7,
+      "endLine": 8,
+      "reason": "Products and availability are returned.",
+      "sha256": "b64dc73fac0658bfdb1c5672e2732a3b07033b2f608db5efa8de33c915cb251f",
+      "snippet": "  listProducts() {\n    return [...this.stock].map(([sku, quantity]) => ({ sku, available: quantity > 0 }));"
+    },
+    {
+      "id": "reserve",
+      "path": "examples/shop/store.js",
+      "startLine": 10,
+      "endLine": 15,
+      "reason": "Stock is checked and decremented.",
+      "sha256": "b64dc73fac0658bfdb1c5672e2732a3b07033b2f608db5efa8de33c915cb251f",
+      "snippet": "  reserve(sku) {\n    const quantity = this.stock.get(sku) || 0;\n    if (quantity < 1) return false;\n    this.stock.set(sku, quantity - 1);\n    return true;\n  }"
+    },
+    {
+      "id": "release",
+      "path": "examples/shop/store.js",
+      "startLine": 16,
+      "endLine": 18,
+      "reason": "Compensation restores stock.",
+      "sha256": "b64dc73fac0658bfdb1c5672e2732a3b07033b2f608db5efa8de33c915cb251f",
+      "snippet": "  release(sku) {\n    this.stock.set(sku, (this.stock.get(sku) || 0) + 1);\n  }"
+    },
+    {
+      "id": "save",
+      "path": "examples/shop/store.js",
+      "startLine": 19,
+      "endLine": 23,
+      "reason": "Orders are stored in memory.",
+      "sha256": "b64dc73fac0658bfdb1c5672e2732a3b07033b2f608db5efa8de33c915cb251f",
+      "snippet": "  saveOrder(sku, receipt) {\n    const order = { id: `order-${this.orders.length + 1}`, sku, receipt };\n    this.orders.push(order);\n    return order;\n  }"
+    },
+    {
+      "id": "payment",
+      "path": "examples/shop/payment.js",
+      "startLine": 2,
+      "endLine": 5,
+      "reason": "Payment stub throws or returns a receipt.",
+      "sha256": "939268f7132b74788c9ef4d3c24342b0f13bb49ea7e41b601b703cfcb03d5010",
+      "snippet": "export async function charge(token) {\n  if (token === 'declined') throw new Error('Payment declined');\n  return { id: 'receipt-demo', status: 'paid' };\n}"
+    }
+  ],
+  "useCases": [
+    {
+      "id": "browse-products",
+      "name": "Browse products",
+      "goal": "Discover available products before deciding what to buy.",
+      "actorIds": [
+        "customer"
+      ],
+      "preconditions": [
+        "The shop has a product inventory."
+      ],
+      "postconditions": [
+        "The caller receives product availability."
+      ],
+      "confidence": "observed",
+      "evidenceIds": [
+        "browse",
+        "list"
+      ],
+      "scenarios": [
+        {
+          "id": "catalog",
+          "name": "View the catalog",
+          "outcome": "Products are returned with an availability flag.",
+          "steps": [
+            {
+              "id": "list",
+              "from": "shop",
+              "to": "stock",
+              "kind": "call",
+              "label": "List products",
+              "description": "Browsing delegates to Store.listProducts().",
+              "confidence": "observed",
+              "evidenceIds": [
+                "browse",
+                "list"
+              ]
+            },
+            {
+              "id": "products",
+              "from": "stock",
+              "to": "shop",
+              "kind": "return",
+              "label": "Return availability",
+              "description": "Each product includes its SKU and whether quantity is positive.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "list"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "place-order",
+      "name": "Place an order",
+      "goal": "Buy an available product, pay for it, and receive an order confirmation.",
+      "actorIds": [
+        "customer"
+      ],
+      "preconditions": [
+        "A SKU and payment token are supplied.",
+        "The selected product has stock."
+      ],
+      "postconditions": [
+        "Stock decreases by one.",
+        "An order containing the receipt is recorded."
+      ],
+      "confidence": "observed",
+      "evidenceIds": [
+        "validate",
+        "checkout",
+        "save"
+      ],
+      "scenarios": [
+        {
+          "id": "happy-path",
+          "name": "Successful checkout",
+          "outcome": "Status 201 and the created order are returned.",
+          "steps": [
+            {
+              "id": "request",
+              "from": "customer",
+              "to": "shop",
+              "kind": "call",
+              "label": "Submit order",
+              "description": "A customer supplies a product SKU and payment token.",
+              "confidence": "inferred",
+              "evidenceIds": [],
+              "rationale": "The fixture exposes backend functions. Customer-facing UI and HTTP transport are not implemented; Customer is a conceptual caller."
+            },
+            {
+              "id": "reserve",
+              "from": "shop",
+              "to": "stock",
+              "kind": "call",
+              "label": "Reserve product",
+              "description": "Checkout reserves stock before payment.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "validate",
+                "reserve"
+              ]
+            },
+            {
+              "id": "reserved",
+              "from": "stock",
+              "to": "shop",
+              "kind": "return",
+              "label": "Reservation accepted",
+              "description": "The store decrements quantity and reports success.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "reserve"
+              ]
+            },
+            {
+              "id": "charge",
+              "from": "shop",
+              "to": "payment",
+              "kind": "call",
+              "label": "Charge payment token",
+              "description": "Checkout awaits the injected payment function.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "checkout",
+                "payment"
+              ]
+            },
+            {
+              "id": "receipt",
+              "from": "payment",
+              "to": "shop",
+              "kind": "return",
+              "label": "Return paid receipt",
+              "description": "The stub resolves with a demo receipt unless declined.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "payment"
+              ]
+            },
+            {
+              "id": "save",
+              "from": "shop",
+              "to": "stock",
+              "kind": "call",
+              "label": "Save order",
+              "description": "Store the receipt and SKU in the in-memory order collection.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "checkout",
+                "save"
+              ]
+            },
+            {
+              "id": "created",
+              "from": "shop",
+              "to": "customer",
+              "kind": "return",
+              "label": "Order created · 201",
+              "description": "Checkout returns the created order and status 201 to its caller.",
+              "confidence": "inferred",
+              "evidenceIds": [],
+              "rationale": "The fixture exposes backend functions. Customer-facing UI and HTTP transport are not implemented; Customer is a conceptual caller."
+            }
+          ]
+        },
+        {
+          "id": "payment-declined",
+          "name": "Payment declined",
+          "outcome": "Status 402 is returned and reserved stock is restored.",
+          "steps": [
+            {
+              "id": "request",
+              "from": "customer",
+              "to": "shop",
+              "kind": "call",
+              "label": "Submit order",
+              "description": "A customer supplies a product SKU and payment token.",
+              "confidence": "inferred",
+              "evidenceIds": [],
+              "rationale": "The fixture exposes backend functions. Customer-facing UI and HTTP transport are not implemented; Customer is a conceptual caller."
+            },
+            {
+              "id": "reserve",
+              "from": "shop",
+              "to": "stock",
+              "kind": "call",
+              "label": "Reserve product",
+              "description": "Checkout reserves stock before payment.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "validate",
+                "reserve"
+              ]
+            },
+            {
+              "id": "reserved",
+              "from": "stock",
+              "to": "shop",
+              "kind": "return",
+              "label": "Reservation accepted",
+              "description": "The store decrements quantity and reports success.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "reserve"
+              ]
+            },
+            {
+              "id": "charge",
+              "from": "shop",
+              "to": "payment",
+              "kind": "call",
+              "label": "Charge payment token",
+              "description": "Checkout awaits the injected payment function.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "checkout",
+                "payment"
+              ]
+            },
+            {
+              "id": "declined",
+              "from": "payment",
+              "to": "shop",
+              "kind": "return",
+              "label": "Payment fails",
+              "description": "The declined token causes an error, handled by checkout.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "payment",
+                "checkout"
+              ]
+            },
+            {
+              "id": "release",
+              "from": "shop",
+              "to": "stock",
+              "kind": "call",
+              "label": "Release reserved product",
+              "description": "The catch block restores stock after payment failure.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "checkout",
+                "release"
+              ]
+            },
+            {
+              "id": "failed",
+              "from": "shop",
+              "to": "customer",
+              "kind": "return",
+              "label": "Payment declined · 402",
+              "description": "The caller receives a declined response. No order is saved.",
+              "confidence": "inferred",
+              "evidenceIds": [],
+              "rationale": "The fixture exposes backend functions. Customer-facing UI and HTTP transport are not implemented; Customer is a conceptual caller."
+            }
+          ]
+        },
+        {
+          "id": "out-of-stock",
+          "name": "Out of stock",
+          "outcome": "Status 409 is returned before payment.",
+          "steps": [
+            {
+              "id": "request",
+              "from": "customer",
+              "to": "shop",
+              "kind": "call",
+              "label": "Submit order",
+              "description": "A customer supplies a product SKU and payment token.",
+              "confidence": "inferred",
+              "evidenceIds": [],
+              "rationale": "The fixture exposes backend functions. Customer-facing UI and HTTP transport are not implemented; Customer is a conceptual caller."
+            },
+            {
+              "id": "reserve",
+              "from": "shop",
+              "to": "stock",
+              "kind": "call",
+              "label": "Reserve product",
+              "description": "Checkout reserves stock before payment.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "validate",
+                "reserve"
+              ]
+            },
+            {
+              "id": "unavailable",
+              "from": "stock",
+              "to": "shop",
+              "kind": "return",
+              "label": "Reservation rejected",
+              "description": "Reservation returns false for an unknown or depleted product.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "reserve"
+              ]
+            },
+            {
+              "id": "conflict",
+              "from": "shop",
+              "to": "customer",
+              "kind": "return",
+              "label": "Out of stock · 409",
+              "description": "Payment and order persistence are skipped.",
+              "confidence": "inferred",
+              "evidenceIds": [],
+              "rationale": "The fixture exposes backend functions. Customer-facing UI and HTTP transport are not implemented; Customer is a conceptual caller."
+            }
+          ]
+        },
+        {
+          "id": "invalid-input",
+          "name": "Missing input",
+          "outcome": "Status 400 is returned before reserving stock.",
+          "steps": [
+            {
+              "id": "request",
+              "from": "customer",
+              "to": "shop",
+              "kind": "call",
+              "label": "Submit order",
+              "description": "A customer supplies a product SKU and payment token.",
+              "confidence": "inferred",
+              "evidenceIds": [],
+              "rationale": "The fixture exposes backend functions. Customer-facing UI and HTTP transport are not implemented; Customer is a conceptual caller."
+            },
+            {
+              "id": "invalid",
+              "from": "shop",
+              "to": "customer",
+              "kind": "return",
+              "label": "Missing input · 400",
+              "description": "Checkout returns early when SKU or token is missing.",
+              "confidence": "inferred",
+              "evidenceIds": [],
+              "rationale": "The fixture exposes backend functions. Customer-facing UI and HTTP transport are not implemented; Customer is a conceptual caller."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pay-order",
+      "name": "Pay for an order",
+      "goal": "Obtain a paid receipt as part of checkout.",
+      "actorIds": [
+        "customer"
+      ],
+      "preconditions": [
+        "Stock is reserved.",
+        "A payment token is supplied."
+      ],
+      "postconditions": [
+        "Checkout receives a receipt or handles payment failure."
+      ],
+      "confidence": "observed",
+      "evidenceIds": [
+        "checkout",
+        "payment"
+      ],
+      "scenarios": [
+        {
+          "id": "paid",
+          "name": "Payment accepted",
+          "outcome": "The stub resolves with a paid receipt.",
+          "steps": [
+            {
+              "id": "charge",
+              "from": "shop",
+              "to": "payment",
+              "kind": "call",
+              "label": "Charge payment token",
+              "description": "Checkout awaits the injected payment function.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "checkout",
+                "payment"
+              ]
+            },
+            {
+              "id": "receipt",
+              "from": "payment",
+              "to": "shop",
+              "kind": "return",
+              "label": "Return paid receipt",
+              "description": "The stub resolves with a demo receipt unless declined.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "payment"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "declined",
+          "name": "Payment rejected",
+          "outcome": "The stub throws an error.",
+          "steps": [
+            {
+              "id": "charge",
+              "from": "shop",
+              "to": "payment",
+              "kind": "call",
+              "label": "Charge payment token",
+              "description": "Checkout awaits the injected payment function.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "checkout",
+                "payment"
+              ]
+            },
+            {
+              "id": "declined",
+              "from": "payment",
+              "to": "shop",
+              "kind": "return",
+              "label": "Payment fails",
+              "description": "The declined token causes an error, handled by checkout.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "payment",
+                "checkout"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "place-order",
+      "to": "pay-order",
+      "kind": "include",
+      "confidence": "observed",
+      "evidenceIds": [
+        "checkout",
+        "payment"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "READIT"
+  short_description: "Explore use cases and code flows with evidence"
+  default_prompt: "Use $readit to map this repository into use cases and interactive UML flows."

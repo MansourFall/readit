@@ -1,0 +1,469 @@
+{
+  "schemaVersion": "1.0",
+  "project": {
+    "name": "Member invitations",
+    "description": "An exported function authorizes an administrator, creates a pending invitation, sends it through an injected mailer, and removes it if delivery fails."
+  },
+  "analysis": {
+    "mode": "agent",
+    "generatedAt": "2026-10-14T15:35:24.572185+00:00",
+    "scope": "Agent-generated analysis of examples/invitations/invitations.js. Only this module and its injected dependency interfaces are in scope.",
+    "limitations": [
+      "Static source analysis, not a runtime trace or a recovery of complete business requirements.",
+      "No callers, UI, API routes, transport, tests, configuration or dependency implementations are present. The conceptual requester interaction is inferred; HTTP serving is not established by numeric status fields.",
+      "Directory.find/save/remove and mailer.send are injected objects. Storage durability, lookup semantics beyond truthiness, email transport behavior, and invitation acceptance are unknown.",
+      "The code assumes actor.role and email.includes can be accessed; it provides no general input validation or full email syntax validation.",
+      "Directory lookup and save occur before the try block, so their exceptions are not caught. A failed cleanup can propagate instead of returning 502; these exception paths are omitted from the diagrams because dependency behavior is absent.",
+      "No retry, concurrency control, atomic transaction or duplicate-race prevention is demonstrated. No use-case relationships are asserted from helper calls.",
+      "The returned invite is whatever directory.save supplies; its existence and id shape are assumed by the function."
+    ]
+  },
+  "actors": [
+    {
+      "id": "requester",
+      "name": "Invitation requester"
+    }
+  ],
+  "participants": [
+    {
+      "id": "requester",
+      "name": "Invitation requester",
+      "kind": "actor"
+    },
+    {
+      "id": "invitations",
+      "name": "Invitation function",
+      "kind": "component"
+    },
+    {
+      "id": "directory",
+      "name": "Injected invitation directory",
+      "kind": "external"
+    },
+    {
+      "id": "mailer",
+      "name": "Injected mailer",
+      "kind": "external"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "entry",
+      "path": "examples/invitations/invitations.js",
+      "startLine": 1,
+      "endLine": 1,
+      "sha256": "8c83a77df84d05798faf2ab0c650df7b3f0d034252e8664e2c81b3730b2b9d28",
+      "reason": "Exported invitation function and injected dependencies."
+    },
+    {
+      "id": "authorization",
+      "path": "examples/invitations/invitations.js",
+      "startLine": 2,
+      "endLine": 2,
+      "sha256": "8c83a77df84d05798faf2ab0c650df7b3f0d034252e8664e2c81b3730b2b9d28",
+      "reason": "Administrator role required; other roles return 403."
+    },
+    {
+      "id": "email",
+      "path": "examples/invitations/invitations.js",
+      "startLine": 3,
+      "endLine": 3,
+      "sha256": "8c83a77df84d05798faf2ab0c650df7b3f0d034252e8664e2c81b3730b2b9d28",
+      "reason": "Email requires @; otherwise returns 400."
+    },
+    {
+      "id": "duplicate",
+      "path": "examples/invitations/invitations.js",
+      "startLine": 4,
+      "endLine": 4,
+      "sha256": "8c83a77df84d05798faf2ab0c650df7b3f0d034252e8664e2c81b3730b2b9d28",
+      "reason": "Truthy lookup result returns 409."
+    },
+    {
+      "id": "save",
+      "path": "examples/invitations/invitations.js",
+      "startLine": 5,
+      "endLine": 5,
+      "sha256": "8c83a77df84d05798faf2ab0c650df7b3f0d034252e8664e2c81b3730b2b9d28",
+      "reason": "Persist pending invitation before delivery try/catch."
+    },
+    {
+      "id": "send",
+      "path": "examples/invitations/invitations.js",
+      "startLine": 6,
+      "endLine": 7,
+      "sha256": "8c83a77df84d05798faf2ab0c650df7b3f0d034252e8664e2c81b3730b2b9d28",
+      "reason": "Attempt awaited mail delivery using saved invitation id."
+    },
+    {
+      "id": "created",
+      "path": "examples/invitations/invitations.js",
+      "startLine": 8,
+      "endLine": 8,
+      "sha256": "8c83a77df84d05798faf2ab0c650df7b3f0d034252e8664e2c81b3730b2b9d28",
+      "reason": "Successful delivery returns 201 and invitation."
+    },
+    {
+      "id": "rollback",
+      "path": "examples/invitations/invitations.js",
+      "startLine": 9,
+      "endLine": 11,
+      "sha256": "8c83a77df84d05798faf2ab0c650df7b3f0d034252e8664e2c81b3730b2b9d28",
+      "reason": "Delivery catch removes saved record and then returns 502."
+    }
+  ],
+  "useCases": [
+    {
+      "id": "invite-member",
+      "name": "Invite a member",
+      "goal": "Create and deliver a pending member invitation as an administrator.",
+      "actorIds": [
+        "requester"
+      ],
+      "preconditions": [
+        "Caller supplies actor, email and directory/mailer dependencies.",
+        "Successful creation requires actor.role == admin, email including @, and a falsy directory.find(email) result."
+      ],
+      "postconditions": [
+        "Success: pending invitation is saved, mailer.send resolves, and status 201 plus invite is returned.",
+        "Rejected authorization, format or duplicate checks return 403, 400 or 409 before save and send.",
+        "Delivery failure with successful cleanup: saved invitation is removed, then status 502 is returned."
+      ],
+      "confidence": "observed",
+      "evidenceIds": [
+        "entry",
+        "authorization",
+        "email",
+        "duplicate",
+        "save",
+        "send",
+        "created",
+        "rollback"
+      ],
+      "scenarios": [
+        {
+          "id": "success",
+          "name": "Invitation delivered",
+          "outcome": "Returns status 201 and the persisted invitation.",
+          "steps": [
+            {
+              "id": "request",
+              "from": "requester",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Request a member invitation",
+              "description": "Conceptual caller passes an actor, email, directory and mailer to inviteMember. No caller or transport is included in this repository.",
+              "confidence": "inferred",
+              "evidenceIds": [
+                "entry"
+              ],
+              "rationale": "The exported function accepts these inputs, but its actual caller and interaction surface are absent."
+            },
+            {
+              "id": "validate",
+              "from": "invitations",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Check administrator and email",
+              "description": "Requires actor.role to equal admin and email to include @. These are the only explicit local authorization and format checks.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "authorization",
+                "email"
+              ]
+            },
+            {
+              "id": "lookup",
+              "from": "invitations",
+              "to": "directory",
+              "kind": "call",
+              "label": "Look up existing invitation",
+              "description": "Await directory.find(email); a truthy result blocks creation.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "duplicate"
+              ]
+            },
+            {
+              "id": "save",
+              "from": "invitations",
+              "to": "directory",
+              "kind": "call",
+              "label": "Save pending invitation",
+              "description": "Await directory.save({email, state: pending}) before attempting email delivery.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "save"
+              ]
+            },
+            {
+              "id": "send",
+              "from": "invitations",
+              "to": "mailer",
+              "kind": "call",
+              "label": "Deliver invitation",
+              "description": "Await mailer.send(email, invite.id).",
+              "confidence": "observed",
+              "evidenceIds": [
+                "send"
+              ]
+            },
+            {
+              "id": "created",
+              "from": "invitations",
+              "to": "requester",
+              "kind": "return",
+              "label": "Return 201",
+              "description": "After mailer.send resolves, returns status 201 with invite.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "created"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "forbidden",
+          "name": "Caller lacks administrator role",
+          "outcome": "Returns status 403 and Forbidden before accessing dependencies.",
+          "steps": [
+            {
+              "id": "request",
+              "from": "requester",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Request a member invitation",
+              "description": "Conceptual caller passes an actor, email, directory and mailer to inviteMember. No caller or transport is included in this repository.",
+              "confidence": "inferred",
+              "evidenceIds": [
+                "entry"
+              ],
+              "rationale": "The exported function accepts these inputs, but its actual caller and interaction surface are absent."
+            },
+            {
+              "id": "reject",
+              "from": "invitations",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Check administrator role",
+              "description": "actor.role different from admin causes an immediate return.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "authorization"
+              ]
+            },
+            {
+              "id": "forbidden",
+              "from": "invitations",
+              "to": "requester",
+              "kind": "return",
+              "label": "Return 403",
+              "description": "Returns {status: 403, error: Forbidden}.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "authorization"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "invalid-email",
+          "name": "Email lacks @",
+          "outcome": "Returns status 400 and Invalid email before lookup or persistence.",
+          "steps": [
+            {
+              "id": "request",
+              "from": "requester",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Request a member invitation",
+              "description": "Conceptual caller passes an actor, email, directory and mailer to inviteMember. No caller or transport is included in this repository.",
+              "confidence": "inferred",
+              "evidenceIds": [
+                "entry"
+              ],
+              "rationale": "The exported function accepts these inputs, but its actual caller and interaction surface are absent."
+            },
+            {
+              "id": "check",
+              "from": "invitations",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Check email string",
+              "description": "After authorization, an email whose includes(@) is false causes an immediate return.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "authorization",
+                "email"
+              ]
+            },
+            {
+              "id": "invalid",
+              "from": "invitations",
+              "to": "requester",
+              "kind": "return",
+              "label": "Return 400",
+              "description": "Returns {status: 400, error: Invalid email}.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "email"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "duplicate",
+          "name": "An invitation already exists",
+          "outcome": "Returns status 409 and Already invited without saving or mailing.",
+          "steps": [
+            {
+              "id": "request",
+              "from": "requester",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Request a member invitation",
+              "description": "Conceptual caller passes an actor, email, directory and mailer to inviteMember. No caller or transport is included in this repository.",
+              "confidence": "inferred",
+              "evidenceIds": [
+                "entry"
+              ],
+              "rationale": "The exported function accepts these inputs, but its actual caller and interaction surface are absent."
+            },
+            {
+              "id": "checks",
+              "from": "invitations",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Check caller and email",
+              "description": "Administrator and @ checks precede directory lookup.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "authorization",
+                "email"
+              ]
+            },
+            {
+              "id": "lookup",
+              "from": "invitations",
+              "to": "directory",
+              "kind": "call",
+              "label": "Look up existing invitation",
+              "description": "A truthy awaited directory.find(email) result is treated as already invited.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "duplicate"
+              ]
+            },
+            {
+              "id": "conflict",
+              "from": "invitations",
+              "to": "requester",
+              "kind": "return",
+              "label": "Return 409",
+              "description": "Returns {status: 409, error: Already invited}.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "duplicate"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "delivery-failed",
+          "name": "Delivery fails and cleanup succeeds",
+          "outcome": "Removes the saved invitation and returns status 502 and Delivery failed.",
+          "steps": [
+            {
+              "id": "request",
+              "from": "requester",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Request a member invitation",
+              "description": "Conceptual caller passes an actor, email, directory and mailer to inviteMember. No caller or transport is included in this repository.",
+              "confidence": "inferred",
+              "evidenceIds": [
+                "entry"
+              ],
+              "rationale": "The exported function accepts these inputs, but its actual caller and interaction surface are absent."
+            },
+            {
+              "id": "checks",
+              "from": "invitations",
+              "to": "invitations",
+              "kind": "call",
+              "label": "Check caller and email",
+              "description": "Administrator and @ checks precede directory access.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "authorization",
+                "email"
+              ]
+            },
+            {
+              "id": "lookup",
+              "from": "invitations",
+              "to": "directory",
+              "kind": "call",
+              "label": "Look up existing invitation",
+              "description": "A falsy result permits persistence.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "duplicate"
+              ]
+            },
+            {
+              "id": "save",
+              "from": "invitations",
+              "to": "directory",
+              "kind": "call",
+              "label": "Save pending invitation",
+              "description": "The record is saved outside the mail delivery try/catch.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "save"
+              ]
+            },
+            {
+              "id": "send",
+              "from": "invitations",
+              "to": "mailer",
+              "kind": "call",
+              "label": "Attempt delivery",
+              "description": "A thrown or rejected send enters the catch block.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "send",
+                "rollback"
+              ]
+            },
+            {
+              "id": "remove",
+              "from": "invitations",
+              "to": "directory",
+              "kind": "call",
+              "label": "Remove invitation after failure",
+              "description": "Await directory.remove(invite.id) as compensating cleanup; this is not evidence of a database transaction.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "rollback"
+              ]
+            },
+            {
+              "id": "failed",
+              "from": "invitations",
+              "to": "requester",
+              "kind": "return",
+              "label": "Return 502",
+              "description": "Only after remove resolves, returns status 502 and Delivery failed.",
+              "confidence": "observed",
+              "evidenceIds": [
+                "rollback"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}
