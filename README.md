@@ -2,6 +2,8 @@
 
 **Beyond the README. Follow the story.**
 
+![READIT demo: explore the use-case map, choose Place an order, and follow all seven sequence messages.](https://raw.githubusercontent.com/MansourFall/readit/main/docs/assets/readit-demo.gif)
+
 READIT turns a repository into an evidence-backed map of what the application does and how the code makes it happen. It combines a coding-agent skill, a dependency-free Node.js CLI, and an interactive UML explorer to help developers understand unfamiliar codebases.
 
 Published on npm as [`@mansourfall/readit`](https://www.npmjs.com/package/@mansourfall/readit).
@@ -149,6 +151,8 @@ readit demo
 ```
 
 Open `http://127.0.0.1:4173`, choose **Place an order**, and explore the success and failure scenarios. Stop the server with Ctrl+C.
+
+To record a looping GIF of the demo from a macOS source checkout, run `npm run demo:gif`. See [the recording guide](docs/DEMO-RECORDING.md) for prerequisites, output paths, and the captured walkthrough.
 
 ## CLI usage
 

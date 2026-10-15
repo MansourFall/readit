@@ -45,6 +45,7 @@
   "scripts": {
     "start": "node bin/readit.js demo",
     "demo": "node bin/readit.js demo",
+    "demo:gif": "node scripts/record-demo.mjs",
     "test": "node --test test/*.test.js",
     "test:ui": "node test/browser.mjs",
     "build": "node bin/readit.js build examples/shop/readit.json --out dist/readit.html",
