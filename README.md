@@ -21,6 +21,34 @@ Instead of producing a generic summary, READIT organizes understanding around ac
 
 READIT performs static interpretation, not runtime verification. Its scanner inventories source files and entry-point hints; the host coding agent investigates the code and constructs the behavioral model.
 
+## Main use cases
+
+### Developer onboarding
+
+Give a newcomer a goal-oriented view of an application: who uses it, what they are trying to accomplish, which components implement each goal, which success and failure paths matter, and where those claims appear in the source.
+
+### Understanding AI-generated code
+
+Reconstruct the observable user goals and implementation flows of a feature or application produced by an agent, so humans can review architecture and behavior they did not write themselves.
+
+### Legacy-code exploration
+
+Map a bounded vertical slice of an unfamiliar codebase—such as checkout, authentication, invitations, or report publishing—without turning every function into a use case or pretending the analysis is exhaustive.
+
+### Architecture and behavior documentation
+
+Produce reviewable UML use case and sequence diagrams with success, alternate, and failure scenarios; calls, returns, and asynchronous messages; exact source evidence; and clearly labeled inferred behavior.
+
+### Change-impact review
+
+Refresh affected flows after a feature changes to identify stale evidence, changed use cases or sequences, and assumptions that require human confirmation.
+
+### Pull-request and design review
+
+Let reviewers begin with user goals and system interactions, then follow each important claim into the implementation instead of starting from a file-by-file diff alone.
+
+These outputs explain a source snapshot; they do not prove that a path executed successfully in development or production. Source hashes establish correspondence to that snapshot, while observed and inferred labels make the strength of each claim visible.
+
 ## Requirements
 
 - Node.js 22 or later

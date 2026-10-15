@@ -10,6 +10,17 @@ Official source: https://hacktoberfest.galsen.dev/hackathon. Recheck the organiz
 
 READIT helps developers understand an application beyond its README. A coding-agent skill discovers user goals and traces their implementation, then produces an interactive map of UML use cases and playable sequence diagrams. Every source-backed claim points to code; uncertain steps are explicitly marked. The result is a portable, offline exploration experience for onboarding and reviewing AI-generated code.
 
+## Main use cases
+
+- **Developer onboarding:** give newcomers a goal-oriented map of an application—its actors, important user goals, success and failure paths, implementing components, and exact source evidence.
+- **Understanding AI-generated code:** help humans review the architecture and observable behavior of features or applications produced by coding agents.
+- **Legacy-code exploration:** investigate a bounded vertical slice such as checkout, authentication, invitations, or report publishing without mistaking every function for a use case.
+- **Architecture and behavior documentation:** generate reviewable UML use case and sequence diagrams with alternate and error scenarios, component interactions, evidence, and visible uncertainty.
+- **Change-impact review:** refresh affected flows after a change to reveal stale evidence, changed scenarios, and assumptions that still need confirmation.
+- **Pull-request and design review:** let reviewers start from user goals and system interactions, then follow important claims into the implementation rather than relying only on a file-by-file diff.
+
+READIT performs static, evidence-backed interpretation rather than runtime verification. A source hash ties a claim to a source snapshot; it does not prove that the behavior executed successfully in development or production.
+
 ## Three-minute demo plan
 
 | Time | Show | Explain |
