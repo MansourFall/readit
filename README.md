@@ -29,60 +29,23 @@ READIT performs static interpretation, not runtime verification. Its scanner inv
 
 The CLI has no runtime dependencies and does not require an API key.
 
-## Installation
-
-Install the CLI globally from npm:
-
-```bash
-npm install --global @mansourfall/readit
-readit --version
-```
-
-Install the READIT skill for Codex:
-
-```bash
-readit install-skill
-```
-
-Restart Codex after installing the skill. READIT refuses to overwrite an existing skill installation. To install into a different skills directory, use:
-
-```bash
-readit install-skill --to /path/to/skills
-```
-
-To try the demo without installing the CLI globally:
-
-```bash
-npx --yes @mansourfall/readit demo
-```
-
-Update an existing global installation with:
-
-```bash
-npm update --global @mansourfall/readit
-```
-
-### Install from source
-
-```bash
-git clone https://github.com/MansourFall/readit.git
-cd readit
-npm ci
-npm link
-npm run skill:install
-```
-
 ## Quick start
 
-Explore the included source-backed demo:
+Add the READIT skill to your current project:
 
 ```bash
-readit demo
+npx skills add MansourFall/readit --skill readit
 ```
 
-Open `http://127.0.0.1:4173`, choose **Place an order**, and explore the success and failure scenarios. Stop the server with Ctrl+C.
+Then invoke it in your coding agent. The composer syntax belongs to the host, not to the READIT CLI:
 
-To analyze your own repository, open that repository in Codex and ask:
+| Agent host | Invocation |
+|---|---|
+| Codex | `$readit` |
+| A host that exposes installed skills as slash commands | `/readit` |
+| Any other compatible host | “Use the READIT skill to map this repository for developer onboarding.” |
+
+For example, ask:
 
 ```text
 Use $readit to map this repository for developer onboarding.
@@ -92,7 +55,72 @@ Attach exact source evidence, mark uncertainty, and generate the interactive
 explorer in .readit/. Do not execute the target app or publish its source.
 ```
 
+The installed skill first uses a compatible `readit` CLI when one is available. Otherwise it runs the explicitly scoped package through `npx -y @mansourfall/readit@latest`; that fallback may download the package from npm. No global CLI install is required.
+
 The skill guides the agent through scanning the repository, inspecting relevant source, creating `.readit/readit.json`, validating its evidence, and building `.readit/readit.html`.
+
+## Installation options
+
+The quick-start command installs the skill for the current project. To make it available across supported workspaces for your user, add `-g`:
+
+```bash
+npx skills add MansourFall/readit --skill readit -g
+```
+
+The `skills` command is external installation tooling; it is not a READIT runtime dependency. Refresh skills installed through it with:
+
+```bash
+npx skills update
+```
+
+Install the CLI globally only if you also want a persistent terminal command:
+
+```bash
+npm install --global @mansourfall/readit
+readit --version
+```
+
+Update that optional global installation with `npm update --global @mansourfall/readit`.
+
+To run only the demo without a global install:
+
+```bash
+npx --yes @mansourfall/readit demo
+```
+
+### Develop from source
+
+```bash
+git clone https://github.com/MansourFall/readit.git
+cd readit
+npm ci
+node bin/readit.js --version
+```
+
+When developing unpublished READIT changes, the skill can use `node /absolute/path/to/readit/bin/readit.js` from the confirmed checkout. Use `npm link` only when you specifically want that checkout exposed as a global `readit` command.
+
+### Compatibility and troubleshooting
+
+- If an older global CLI reports `Unknown command: agent-guide`, update it with `npm update --global @mansourfall/readit` or let the skill use its `npx -y @mansourfall/readit@latest` fallback.
+- If the npm registry is unavailable, use an already installed compatible `readit` command or a confirmed READIT source checkout. The on-demand fallback needs registry access only when npm has not cached the package.
+- Refresh a skill installed with the quick-start method by running `npx skills update`.
+- The legacy copier remains available for existing Codex setups and explicitly selected agent skill directories:
+
+  ```bash
+  readit install-skill --to /path/to/skills
+  ```
+
+  Without `--to`, it keeps its historical default of the Codex skills directory. It refuses to overwrite an existing `readit` folder; update that installation deliberately instead of deleting it automatically.
+
+## Explore the demo
+
+Explore the included source-backed demo:
+
+```bash
+readit demo
+```
+
+Open `http://127.0.0.1:4173`, choose **Place an order**, and explore the success and failure scenarios. Stop the server with Ctrl+C.
 
 ## CLI usage
 
@@ -102,6 +130,7 @@ readit scan <repo> [--out inventory.json]
 readit validate <model.json> [--root repo]
 readit build <model.json> [--out file.html] [--root repo]
 readit serve <model.json> [--root repo] [--port 4173]
+readit agent-guide
 readit install-skill [--to directory]
 ```
 

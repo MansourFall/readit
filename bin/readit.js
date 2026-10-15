@@ -9,7 +9,9 @@ import { buildHtml } from '../src/build.js';
 import { startServer } from '../src/server.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const help = `READIT 0.1.0 — Beyond the README. Follow the story.
+const packageMetadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
+const version = packageMetadata.version;
+const help = `READIT ${version} — Beyond the README. Follow the story.
 
 Usage:
   readit demo [--port 4173]                  Explore the included source-backed demo
@@ -19,9 +21,11 @@ Usage:
                                            Export an offline, self-contained explorer
   readit serve <model.json> [--root repo] [--port 4173]
                                            Serve locally; check current source on click
-  readit install-skill [--to directory]      Install the portable Codex skill
+  readit agent-guide                         Print the packaged coding-agent workflow
+  readit install-skill [--to directory]      Legacy copy; default is the Codex skills dir
 
-The scan is an inventory, not an AI analyzer. Use $readit in Codex to discover use cases.
+The scan is an inventory, not an AI analyzer. Install the portable skill to discover use cases.
+Portable skill install: npx skills add MansourFall/readit --skill readit
 No API key, browser uploads, telemetry, remote rendering, or runtime dependencies.
 `;
 const [command, ...args] = process.argv.slice(2);
@@ -51,7 +55,15 @@ async function write(filename, content) {
 }
 try {
   if (!command || ['help', '--help', '-h'].includes(command)) console.log(help);
-  else if (command === '--version') console.log('0.1.0');
+  else if (command === '--version') console.log(version);
+  else if (command === 'agent-guide') {
+    const { positional } = parse([]);
+    if (positional.length) throw new Error('agent-guide takes no arguments');
+    const referenceRoot = path.join(root, 'skills/readit/references');
+    const guideFiles = ['agent-guide.md', 'analysis-playbook.md', 'model-contract.md'];
+    const guides = await Promise.all(guideFiles.map(filename => fs.readFile(path.join(referenceRoot, filename), 'utf8')));
+    console.log(guides.map(guide => guide.trim()).join('\n\n---\n\n'));
+  }
   else if (command === 'scan') {
     const { opts, positional } = parse(['out']);
     if (positional.length !== 1) throw new Error('Provide exactly one repository path');
@@ -81,10 +93,13 @@ try {
   } else if (command === 'install-skill') {
     const { opts, positional } = parse(['to']);
     if (positional.length) throw new Error('Use --to to choose the skills directory');
+    const usesDefault = !opts.to;
     const destination = path.join(path.resolve(opts.to || path.join(process.env.CODEX_HOME || path.join(os.homedir(), '.codex'), 'skills')), 'readit');
     try { await fs.access(destination); throw new Error(`Skill already exists at ${destination}; remove or move it deliberately before reinstalling.`); }
     catch (error) { if (error.code !== 'ENOENT') throw error; }
     await fs.cp(path.join(root, 'skills/readit'), destination, { recursive: true });
-    console.log(`Installed READIT skill at ${destination}. Restart Codex, then use $readit. Run npm link in the READIT source folder to make the CLI available.`);
+    const destinationKind = usesDefault ? 'the legacy default Codex destination' : 'the selected compatibility destination';
+    console.log(`Installed READIT skill at ${destination} (${destinationKind}).`);
+    console.log('For portable agent installation, use: npx skills add MansourFall/readit --skill readit');
   } else throw new Error(`Unknown command: ${command}. Run readit --help.`);
 } catch (error) { console.error(`READIT: ${error.message}`); process.exitCode = 1; }
